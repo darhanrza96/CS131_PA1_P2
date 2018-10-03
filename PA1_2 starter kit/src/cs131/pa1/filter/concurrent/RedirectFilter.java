@@ -54,11 +54,20 @@ public class RedirectFilter extends ConcurrentFilter {
 		try {
 			String temp = input.take();
 			while(!temp.equals("poison pill")){
-				String checker = processLine(temp);
-				if(checker != null) {
-					output.put(checker);
-				}	
+				try {
+					fw.append(temp + "\n");
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				temp = input.take();
+			}
+			try {
+				fw.flush();
+				fw.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
