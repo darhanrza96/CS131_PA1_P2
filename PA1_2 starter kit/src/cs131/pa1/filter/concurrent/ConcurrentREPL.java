@@ -19,16 +19,21 @@ public class ConcurrentREPL {
 			if(command.equals("exit")) {
 				break;
 			} else if(!command.trim().equals("")) {
-				//building the filters list from the command
-				ConcurrentFilter filterlist = ConcurrentCommandBuilder.createFiltersFromCommand(command);
-				while(filterlist != null) {
-					filterlist.process();
-					filterlist = (ConcurrentFilter) filterlist.getNext();
-				}
+				processCommand(command);
 			}
 		}
 		s.close();
 		System.out.print(Message.GOODBYE);
+	}
+	
+	public static void processCommand(String command){
+		//building the filters list from the command
+		ConcurrentFilter filterlist = ConcurrentCommandBuilder.createFiltersFromCommand(command);
+		while(filterlist != null) {
+			Thread newThread = new Thread(filterlist);
+			newThread.start();
+			filterlist = (ConcurrentFilter) filterlist.getNext();
+		}
 	}
 
 }
