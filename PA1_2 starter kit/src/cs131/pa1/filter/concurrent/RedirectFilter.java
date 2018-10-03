@@ -49,5 +49,23 @@ public class RedirectFilter extends ConcurrentFilter {
 		return null;
 	}
 	
+	@Override
+	public void run() {
+		try {
+			String temp = input.take();
+			while(!temp.equals("poison pill")){
+				String checker = processLine(temp);
+				if(checker != null) {
+					output.put(checker);
+				}	
+				temp = input.take();
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+			
+	}
+	
 	
 }
