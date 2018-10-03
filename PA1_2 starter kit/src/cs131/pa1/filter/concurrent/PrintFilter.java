@@ -15,4 +15,20 @@ public class PrintFilter extends ConcurrentFilter {
 		System.out.println(line);
 		return null;
 	}
+	
+	@Override
+	public void run() {
+		try {
+			String temp = input.take();
+			while(!temp.equals("poison pill")){
+				processLine(temp);
+			temp = input.take();
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
 }

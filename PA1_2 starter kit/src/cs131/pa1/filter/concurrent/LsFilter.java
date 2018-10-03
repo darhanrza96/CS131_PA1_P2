@@ -27,7 +27,15 @@ public class LsFilter extends ConcurrentFilter{
 
 	@Override
 	public void run() {
-		
+		try {
+			while(counter < flist.length) {
+				output.put(processLine(""));
+			}
+			output.put("poison pill");
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
