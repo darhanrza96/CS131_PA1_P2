@@ -1,6 +1,8 @@
 package cs131.pa1.filter.concurrent;
 
 import cs131.pa1.filter.Message;
+
+import java.util.LinkedList;
 import java.util.Scanner;
 
 public class ConcurrentREPL {
@@ -29,11 +31,25 @@ public class ConcurrentREPL {
 	public static void processCommand(String command){
 		//building the filters list from the command
 		ConcurrentFilter filterlist = ConcurrentCommandBuilder.createFiltersFromCommand(command);
+		LinkedList<Thread> curThreads = new LinkedList<Thread>();
+		
 		while(filterlist != null) {
 			Thread newThread = new Thread(filterlist);
 			newThread.start();
+			curThreads.add(newThread);
 			filterlist = (ConcurrentFilter) filterlist.getNext();
 		}
+		
+		for(Thread thread : curThreads){
+			try {
+				thread.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
 	}
 
 }
