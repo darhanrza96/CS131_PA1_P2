@@ -57,10 +57,14 @@ public class CatFilter extends ConcurrentFilter{
 	@Override
 	public void run() {
 		try {
-			output.put(processLine(""));
+			while(reader.hasNext()) {
+				output.put(processLine(""));
+			}
+			output.put("poison pill");
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 }
+

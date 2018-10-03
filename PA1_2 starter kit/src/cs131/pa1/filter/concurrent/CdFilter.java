@@ -44,7 +44,6 @@ public class CdFilter extends ConcurrentFilter {
 
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
-		
+		ConcurrentREPL.currentWorkingDirectory = dirToSet;
 	}
 }
