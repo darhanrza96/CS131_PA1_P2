@@ -54,10 +54,11 @@ public abstract class ConcurrentFilter extends Filter implements Runnable {
 			while(!temp.equals("poison pill")){
 				String checker = processLine(temp);
 				if(checker != null) {
-					output.put(processLine(temp));
+					output.put(checker);
 				}	
 				temp = input.take();
 			}
+			output.put("poison pill");
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
