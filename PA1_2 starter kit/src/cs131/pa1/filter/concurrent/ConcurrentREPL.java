@@ -88,11 +88,13 @@ public class ConcurrentREPL {
 		
 		//if has ampersand read command again
 		if (ampersand){
-			//fill index to threadlist hashmap
-			indexToThreadList.put(commandNumber,curThreads);
-			indexToCommand.put(commandNumber, oldcommand);
-			commandNumber++;
-			readCommand();
+			if (!curThreads.isEmpty()){
+				//fill index to threadlist hashmap
+				indexToThreadList.put(commandNumber,curThreads);
+				indexToCommand.put(commandNumber, oldcommand);
+				commandNumber++;
+				readCommand();
+			}
 		} else {	
 			//for terminating threads
 			for(Thread thread : curThreads){
@@ -104,25 +106,28 @@ public class ConcurrentREPL {
 					e.printStackTrace();
 				}
 			}
+			cleanMap(false);	
 		}
 
-		cleanMap(false);	
 
 	}
 
 
 
 	public static void cleanMap(boolean all) {
-		System.out.println("check");
+//		System.out.println("check");
 		Set<Entry<Integer, LinkedList<Thread>>> threadSet = indexToThreadList.entrySet();
 		Iterator<Entry<Integer, LinkedList<Thread>>> iterator = threadSet.iterator();
 		while(iterator.hasNext()) {
 			Map.Entry<Integer, LinkedList<Thread>> mentry = (Map.Entry)iterator.next();
 			//can I compare using == ??
 			LinkedList<Thread> threadList = mentry.getValue();
-			boolean interrupted = threadList.get(threadList.size()-1).isInterrupted();
-			System.out.println("check" + mentry.getKey());
-			System.out.println(threadList.get(threadList.size()-1).isInterrupted());
+			boolean interrupted = threadList.getLast().getState() == Thread.State.TERMINATED;
+//			for (Thread thread : threadList){
+//				System.out.println(thread.getState());
+//			}
+//			System.out.println("check" + mentry.getKey());
+			//System.out.println(threadList.getLast().isInterrupted());
 
 //			for (Thread thread : mentry.getValue()){
 //				try {
@@ -134,7 +139,7 @@ public class ConcurrentREPL {
 //			}
 			if (interrupted || all){
 			Integer key = mentry.getKey();
-			System.out.println("remove" + key);
+//			System.out.println("remove" + key);
 			indexToCommand.remove(key);
 			iterator.remove();
 			}
