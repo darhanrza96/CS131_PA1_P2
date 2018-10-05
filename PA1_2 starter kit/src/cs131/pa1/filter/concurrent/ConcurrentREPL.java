@@ -3,10 +3,12 @@ package cs131.pa1.filter.concurrent;
 import cs131.pa1.filter.Message;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Filter;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -15,8 +17,10 @@ public class ConcurrentREPL {
 	static String currentWorkingDirectory;
 	private static int commandNumber = 1;
 	private static Map<Integer, String> indexToCommand = new HashMap<>();
-	private static Map<Integer, LinkedList<Thread>> indexToThreadList = new HashMap<>(); 
+	private static Map<Integer, LinkedList<Thread>> indexToThreadList = new HashMap<>();
+	private static Map<Integer, ConcurrentFilter> indexToFilter = new HashMap<>();
 	private static Scanner s;
+	//private static boolean toggle = true;
 
 	public static void main(String[] args){  //everything can be done in this method
 		currentWorkingDirectory = System.getProperty("user.dir");
@@ -44,16 +48,21 @@ public class ConcurrentREPL {
 			return true;
 		} else if(command.equals("repl_jobs")) {
 			replJobs();
-		} else if(command.contains("kill")) {
-			int i = Integer.parseInt(command.split("\\s")[1]);
-			kill(i);
+		} else if(command.trim().startsWith("kill")) {
+			String[] splitted = command.split("\\s");
+			if (splitted.length < 2){
+				System.out.print(Message.REQUIRES_PARAMETER);
+				return false;
+			}
+			try{
+				int i = Integer.parseInt(splitted[1]);
+				kill(i);
+				//toggle= false;
+			} catch (NumberFormatException e) {
+				System.out.print(Message.INVALID_PARAMETER.with_parameter(command));
+				return false;
+			}
 		} else if(!command.trim().equals("")) {
-			//				indexToCommand.put(commandNumber, command);
-			//if(commandArr[commandArr.length -1].equals("&")) {
-/*				processCommand(command, true);
-			} else {
-				processCommand(command, false);	
-			}	*/
 			processCommand(command);
 		}
 		return false;
@@ -76,20 +85,29 @@ public class ConcurrentREPL {
 			Thread newThread = new Thread(filterlist);
 			newThread.start();
 			curThreads.add(newThread);
+			if (filterlist.getNext() == null){
+				indexToFilter.put(commandNumber, filterlist);
+			}
 			filterlist = (ConcurrentFilter) filterlist.getNext();
 		}
 		
 		//fill index to threadlist hashmap
 		indexToThreadList.put(commandNumber,curThreads);
 		indexToCommand.put(commandNumber, oldcommand);
+		
+		int currIndex = commandNumber;
 		commandNumber++;
+		
 		
 		//if has ampersand read command again
 		if (ampersand){
 			readCommand();
+			cleanMap(-1);	
+		} else {
+			cleanMap(currIndex);
 		}
 		
-//		//for terminating threads
+		//for terminating current threads
 //		for(Thread thread : curThreads){
 //			try {
 //				thread.join();
@@ -99,29 +117,43 @@ public class ConcurrentREPL {
 //				e.printStackTrace();
 //			}
 //		}
-		cleanMap();	
+		
 	}
 
 
 
-	public static void cleanMap() {
-		Set<Entry<Integer, LinkedList<Thread>>> threadSet = indexToThreadList.entrySet();
-		Iterator<Entry<Integer, LinkedList<Thread>>> iterator = threadSet.iterator();
-		while(iterator.hasNext()) {
-			Map.Entry<Integer, LinkedList<Thread>> mentry = (Map.Entry)iterator.next();
-			//can I compare using == ??
-			for (Thread thread : mentry.getValue()){
-				try {
-					thread.join();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+	public static void cleanMap(int toKill) {
+		Set<Integer> keySet = indexToThreadList.keySet();
+		Set<Integer> setDelete = new HashSet<Integer>();
+		
+		if(toKill != -1){
+			setDelete.add(toKill);
+		} else {
+		
+	    for (Integer key : keySet) {
+			boolean clean = indexToFilter.get(key).isDone();
+			if(clean){
+				for (Thread thread : indexToThreadList.get(key)){
+					try {
+						thread.join();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
+				setDelete.add(key);
 			}
 		}
+		}
+	    for (Integer key : setDelete){
+			indexToFilter.remove(key);
+			indexToThreadList.remove(key);
+			indexToCommand.remove(key);
+	    }
 		
-		indexToCommand.clear();
-		indexToThreadList.clear();
+		if (indexToThreadList.isEmpty()){
+			commandNumber = 1;
+		}
 	
 	}
 
@@ -131,13 +163,16 @@ public class ConcurrentREPL {
 		Iterator iterator = set.iterator();
 		while(iterator.hasNext()) {
 			Map.Entry mentry = (Map.Entry)iterator.next();
-			System.out.print(mentry.getKey() + ". ");
+			System.out.print("\t" + mentry.getKey() + ". ");
 			System.out.println(mentry.getValue());
 		}
 	}
 
 	public static void kill(int commandNumber){
 		LinkedList<Thread> threadList = indexToThreadList.remove(commandNumber);
+		if (threadList == null){
+			replJobs();
+		}
 		for (Thread thread : threadList){
 			thread.interrupt();
 		}
