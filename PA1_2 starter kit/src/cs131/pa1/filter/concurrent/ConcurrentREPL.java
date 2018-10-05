@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -13,53 +14,63 @@ public class ConcurrentREPL {
 
 	static String currentWorkingDirectory;
 	private static int commandNumber = 1;
-	private static final Map<Integer, String> indexToCommand = new HashMap<>();
-	private static final Map<Integer, LinkedList<Thread>> indexToThreadList = new HashMap<>(); 
-	
+	private static Map<Integer, String> indexToCommand = new HashMap<>();
+	private static Map<Integer, LinkedList<Thread>> indexToThreadList = new HashMap<>(); 
+	private static Scanner s;
+
 	public static void main(String[] args){  //everything can be done in this method
 		currentWorkingDirectory = System.getProperty("user.dir");
-		Scanner s = new Scanner(System.in);
+		s = new Scanner(System.in);
 		System.out.print(Message.WELCOME);
-		String command;
-		while(true) {
-			//obtaining the command from the user
-			System.out.print(Message.NEWCOMMAND);
-			command = s.nextLine();
-			String[] commandArr = command.split(" ");
-			
-			if(command.equals("exit")) {
-				break;
-			} else if(command.equals("repl_jobs")) {
-				replJobs();
-			} else if(command.contains("kill")) {
-				int i = command.indexOf(' ');
-				String word = command.substring(0, i);
-				int temp = Integer.parseInt(word.substring(i));
-				kill(temp);
-			} else if(!command.trim().equals("")) {
-				indexToCommand.put(commandNumber, command);
-				if(commandArr[commandArr.length -1].equals("&")) {
-					processCommand(command, true);
-				} else {
-					processCommand(command, false);	
-				}	
-			}
+		boolean end = false;
+		while(!end) {
+			end = readCommand();
 		}
 		s.close();
 		System.out.print(Message.GOODBYE);
 	}
-	
-	public static void processCommand(String command, boolean ampersand){
+
+	public static boolean readCommand(){
 		//if there is & then join the threads
-		if(ampersand == true) {
-			
+		String command;
+
+		//obtaining the command from the user
+		System.out.print(Message.NEWCOMMAND);
+		command = s.nextLine();
+//		String[] commandArr = command.split("\\s");
+		command = command.trim();
+
+		if(command.equals("exit")) {
+			return true;
+		} else if(command.equals("repl_jobs")) {
+			replJobs();
+		} else if(command.contains("kill")) {
+			int i = Integer.parseInt(command.split("\\s")[1]);
+			kill(i);
+		} else if(!command.trim().equals("")) {
+			//				indexToCommand.put(commandNumber, command);
+			//if(commandArr[commandArr.length -1].equals("&")) {
+/*				processCommand(command, true);
+			} else {
+				processCommand(command, false);	
+			}	*/
+			processCommand(command);
 		}
-		
+		return false;
+	}
+
+
+
+	public static void processCommand(String command){
 		//building the filters list from the command
+		boolean ampersand = command.charAt(command.length()-1) == '&';
+		String oldcommand = command;
+		if (ampersand){
+			command = command.substring(0, command.length()-2);
+		}
 		ConcurrentFilter filterlist = ConcurrentCommandBuilder.createFiltersFromCommand(command);
 		LinkedList<Thread> curThreads = new LinkedList<Thread>();
 		
-
 		//fills thread linked list
 		while(filterlist != null) {
 			Thread newThread = new Thread(filterlist);
@@ -67,53 +78,71 @@ public class ConcurrentREPL {
 			curThreads.add(newThread);
 			filterlist = (ConcurrentFilter) filterlist.getNext();
 		}
+		
 		//fill index to threadlist hashmap
 		indexToThreadList.put(commandNumber,curThreads);
+		indexToCommand.put(commandNumber, oldcommand);
 		commandNumber++;
 		
-		//for terminating threads
-		for(Thread thread : curThreads){
-			try {
-				thread.join();
-				
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		//if has ampersand read command again
+		if (ampersand){
+			readCommand();
+		}
+		
+//		//for terminating threads
+//		for(Thread thread : curThreads){
+//			try {
+//				thread.join();
+//
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+		cleanMap();	
+	}
+
+
+
+	public static void cleanMap() {
+		Set<Entry<Integer, LinkedList<Thread>>> threadSet = indexToThreadList.entrySet();
+		Iterator<Entry<Integer, LinkedList<Thread>>> iterator = threadSet.iterator();
+		while(iterator.hasNext()) {
+			Map.Entry<Integer, LinkedList<Thread>> mentry = (Map.Entry)iterator.next();
+			//can I compare using == ??
+			for (Thread thread : mentry.getValue()){
+				try {
+					thread.join();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
-		cleanMap(curThreads);	
+		
+		indexToCommand.clear();
+		indexToThreadList.clear();
+	
 	}
-	
-	
-	
-	public static void cleanMap(LinkedList<Thread> threadsList) {
-		Set set = indexToThreadList.entrySet();
-	    Iterator iterator = set.iterator();
-	    int index = 1;
-	    while(iterator.hasNext()) {
-	    		Map.Entry mentry = (Map.Entry)iterator.next();
-	    		//can I compare using == ??
-	    		if(mentry.getValue() == threadsList) {
-	    			indexToThreadList.remove(index);
-	    		}
-	    		index++;
-	    }
-	}
-	
-	
+
+
 	public static void replJobs(){
 		Set set = indexToCommand.entrySet();
-	    Iterator iterator = set.iterator();
-	    while(iterator.hasNext()) {
-	    		Map.Entry mentry = (Map.Entry)iterator.next();
-	        System.out.print(mentry.getKey() + ". ");
-	        System.out.println(mentry.getValue());
-	    }
+		Iterator iterator = set.iterator();
+		while(iterator.hasNext()) {
+			Map.Entry mentry = (Map.Entry)iterator.next();
+			System.out.print(mentry.getKey() + ". ");
+			System.out.println(mentry.getValue());
+		}
 	}
-	
+
 	public static void kill(int commandNumber){
-		indexToThreadList.remove(commandNumber);
+		LinkedList<Thread> threadList = indexToThreadList.remove(commandNumber);
+		for (Thread thread : threadList){
+			thread.interrupt();
+		}
+		indexToCommand.remove(commandNumber);
 	}
-	
+
 
 }
