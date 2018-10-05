@@ -105,7 +105,7 @@ public class ConcurrentREPL {
 			}
 		}
 
-		//cleanMap();	
+		cleanMap();	
 
 	}
 
@@ -118,19 +118,27 @@ public class ConcurrentREPL {
 			Map.Entry<Integer, LinkedList<Thread>> mentry = (Map.Entry)iterator.next();
 			//can I compare using == ??
 			LinkedList<Thread> threadList = mentry.getValue();
-			for (Thread thread : mentry.getValue()){
-				try {
-					thread.join();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			boolean interrupted = threadList.get(threadList.size()-1).isInterrupted();
+//			for (Thread thread : mentry.getValue()){
+//				try {
+//					thread.join();
+//				} catch (InterruptedException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+			if (interrupted){
+			Integer key = mentry.getKey();
+			indexToCommand.remove(key);
+			iterator.remove();
 			}
 		}
 		
-		indexToCommand.clear();
-		indexToThreadList.clear();
-		commandNumber = 1;
+//		indexToCommand.clear();
+//		indexToThreadList.clear();
+		if (indexToThreadList.isEmpty()){
+			commandNumber = 1;
+		}
 	
 	}
 
