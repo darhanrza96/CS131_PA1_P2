@@ -25,6 +25,7 @@ public class ConcurrentREPL {
 			//obtaining the command from the user
 			System.out.print(Message.NEWCOMMAND);
 			command = s.nextLine();
+			String[] commandArr = command.split(" ");
 			
 			if(command.equals("exit")) {
 				break;
@@ -37,18 +38,23 @@ public class ConcurrentREPL {
 				kill(temp);
 			} else if(!command.trim().equals("")) {
 				indexToCommand.put(commandNumber, command);
-				processCommand(command);
+				if(commandArr[commandArr.length -1].equals("&")) {
+					processCommand(command, true);
+				} else {
+					processCommand(command, false);	
+				}	
 			}
 		}
 		s.close();
 		System.out.print(Message.GOODBYE);
 	}
 	
-	public static void processCommand(String command){
-		if(command.contains("&")) {
-			System.out.print(Message.NEWCOMMAND);
-			command = s.nextLine();
+	public static void processCommand(String command, boolean ampersand){
+		//if there is & then join the threads
+		if(ampersand == true) {
+			
 		}
+		
 		//building the filters list from the command
 		ConcurrentFilter filterlist = ConcurrentCommandBuilder.createFiltersFromCommand(command);
 		LinkedList<Thread> curThreads = new LinkedList<Thread>();
@@ -75,9 +81,7 @@ public class ConcurrentREPL {
 				e.printStackTrace();
 			}
 		}
-		cleanMap(curThreads);
-		
-			
+		cleanMap(curThreads);	
 	}
 	
 	
@@ -105,7 +109,6 @@ public class ConcurrentREPL {
 	        System.out.print(mentry.getKey() + ". ");
 	        System.out.println(mentry.getValue());
 	    }
-		
 	}
 	
 	public static void kill(int commandNumber){
