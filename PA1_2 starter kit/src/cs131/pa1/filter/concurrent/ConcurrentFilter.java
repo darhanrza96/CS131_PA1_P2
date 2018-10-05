@@ -63,6 +63,7 @@ public abstract class ConcurrentFilter extends Filter implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		Thread.currentThread().interrupt();
 			
 	}
 	

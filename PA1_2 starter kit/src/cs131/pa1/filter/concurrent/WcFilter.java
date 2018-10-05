@@ -57,6 +57,7 @@ public class WcFilter extends ConcurrentFilter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		Thread.currentThread().interrupt();
 	}
 	
 	@Override

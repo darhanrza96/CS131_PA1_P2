@@ -46,5 +46,6 @@ public class CdFilter extends ConcurrentFilter {
 	public void run() {
 		ConcurrentREPL.currentWorkingDirectory = dirToSet;
 		output.add("poison pill");
+		Thread.currentThread().interrupt();
 	}
 }

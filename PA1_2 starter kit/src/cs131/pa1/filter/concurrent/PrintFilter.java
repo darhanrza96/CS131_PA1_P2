@@ -24,6 +24,7 @@ public class PrintFilter extends ConcurrentFilter {
 				processLine(temp);
 			temp = input.take();
 			}
+			Thread.currentThread().interrupt();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

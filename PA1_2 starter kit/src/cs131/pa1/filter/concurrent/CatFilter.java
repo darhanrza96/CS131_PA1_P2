@@ -61,6 +61,7 @@ public class CatFilter extends ConcurrentFilter{
 				output.put(processLine(""));
 			}
 			output.put("poison pill");
+			Thread.currentThread().interrupt();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

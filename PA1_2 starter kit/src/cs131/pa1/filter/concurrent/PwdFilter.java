@@ -17,5 +17,6 @@ public class PwdFilter extends ConcurrentFilter {
 	public void run() {
 		output.add(processLine(""));
 		output.add("poison pill");
+		Thread.currentThread().interrupt();
 	}
 }
