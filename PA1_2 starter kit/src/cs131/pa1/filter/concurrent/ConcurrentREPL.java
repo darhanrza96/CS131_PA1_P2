@@ -42,6 +42,7 @@ public class ConcurrentREPL {
 		command = command.trim();
 
 		if(command.equals("exit")) {
+			cleanMap(true);
 			return true;
 		} else if(command.equals("repl_jobs")) {
 			replJobs();
@@ -105,13 +106,13 @@ public class ConcurrentREPL {
 			}
 		}
 
-		cleanMap();	
+		cleanMap(false);	
 
 	}
 
 
 
-	public static void cleanMap() {
+	public static void cleanMap(boolean all) {
 		Set<Entry<Integer, LinkedList<Thread>>> threadSet = indexToThreadList.entrySet();
 		Iterator<Entry<Integer, LinkedList<Thread>>> iterator = threadSet.iterator();
 		while(iterator.hasNext()) {
@@ -127,7 +128,7 @@ public class ConcurrentREPL {
 //					e.printStackTrace();
 //				}
 //			}
-			if (interrupted){
+			if (interrupted || all){
 			Integer key = mentry.getKey();
 			indexToCommand.remove(key);
 			iterator.remove();
