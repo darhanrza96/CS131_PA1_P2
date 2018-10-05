@@ -227,6 +227,7 @@ public class REPLTests {
  				Message.NEWCOMMAND + Message.NEWCOMMAND + Message.NEWCOMMAND + Message.GOODBYE , result);
  		assertTrue((new File("replTest1.txt")).exists());
  	}
+    
 
  	@Test
  	public void testREPLMultipleJobs() {

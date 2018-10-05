@@ -25,6 +25,9 @@ public class PrintFilter extends ConcurrentFilter {
 			temp = input.take();
 			}
 			Thread.currentThread().interrupt();
+			if (Thread.currentThread().isInterrupted()){
+				System.out.println("yes");
+			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

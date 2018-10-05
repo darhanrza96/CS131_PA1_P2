@@ -113,6 +113,7 @@ public class ConcurrentREPL {
 
 
 	public static void cleanMap(boolean all) {
+		System.out.println("check");
 		Set<Entry<Integer, LinkedList<Thread>>> threadSet = indexToThreadList.entrySet();
 		Iterator<Entry<Integer, LinkedList<Thread>>> iterator = threadSet.iterator();
 		while(iterator.hasNext()) {
@@ -120,6 +121,9 @@ public class ConcurrentREPL {
 			//can I compare using == ??
 			LinkedList<Thread> threadList = mentry.getValue();
 			boolean interrupted = threadList.get(threadList.size()-1).isInterrupted();
+			System.out.println("check" + mentry.getKey());
+			System.out.println(threadList.get(threadList.size()-1).isInterrupted());
+
 //			for (Thread thread : mentry.getValue()){
 //				try {
 //					thread.join();
@@ -130,6 +134,7 @@ public class ConcurrentREPL {
 //			}
 			if (interrupted || all){
 			Integer key = mentry.getKey();
+			System.out.println("remove" + key);
 			indexToCommand.remove(key);
 			iterator.remove();
 			}
