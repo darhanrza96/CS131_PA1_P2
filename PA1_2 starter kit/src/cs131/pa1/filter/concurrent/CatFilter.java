@@ -15,7 +15,6 @@ public class CatFilter extends ConcurrentFilter{
 		//parsing the cat options
 		String[] args = line.split(" ");
 		String filename;
-		//obviously incorrect number of parameters
 		if(args.length == 1) {
 			System.out.printf(Message.REQUIRES_PARAMETER.toString(), line);
 			throw new Exception();

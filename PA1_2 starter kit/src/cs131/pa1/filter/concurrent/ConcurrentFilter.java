@@ -48,6 +48,9 @@ public abstract class ConcurrentFilter extends Filter implements Runnable {
 		return input.size() == 0;
 	}
 	
+	/*
+	 * Generic run method that fills the output queue while checking for "poison pill" keyword 
+	 */
 	public void run() {
 		try {
 			String temp = input.take();
@@ -67,6 +70,7 @@ public abstract class ConcurrentFilter extends Filter implements Runnable {
 			
 	}
 	
+	//Over ridden in other classes
 	protected abstract String processLine(String line);
 	
 
